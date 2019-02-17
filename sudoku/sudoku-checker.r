@@ -1,4 +1,4 @@
-load("inputs.RData")
+load("sudoku/inputs.RData")
 
 # Main Func
 isSudokuValid <- function(sudoku.vector) {
