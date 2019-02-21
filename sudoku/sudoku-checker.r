@@ -1,31 +1,40 @@
-load("sudoku/inputs.RData")
+load("inputs.RData")
 
-# Main Func
 isSudokuValid <- function(sudoku.vector) {
+  # Throw if vector does not contains 81 elements
   if (length(sudoku.vector) != 81) {
     stop("Sudoku incompleto")
   }
   
+  # Convert vector to 9 x 9 matrix
   sudoku.matrix <- matrix(sudoku.vector, ncol = 9, byrow = TRUE)
-  results <- sapply(1:9, FUN = containsValidValues, sudoku.matrix)
+
+  # Validate matrix
+  linear.results <- sapply(1:9, FUN = linearValidator, sudoku.matrix)
+
+  is.valid <- Reduce(linear.results["isValid",], f = "&&")
+  errors <- Reduce(linear.results["errors",], f = "append")
   
-  isValid <- Reduce(results["isValid",], f = "&&")
-  errors <- Reduce(results["errors",], f = "append")
-  
-  return(list(errors = errors[!is.na(errors)], isValid  = isValid))
+  return(list(errors = errors[!is.na(errors)], isValid  = is.valid))
 }
 
-# Validation Func
-containsValidValues <- function(row.number, matrix) {
+linearValidator <- function(row.number, matrix) {
+  # Extract row from matrix
   row <- matrix[row.number,]
+
+  # Create return list
   result <- list(errors = NA);
-  isValid <- isValidVector(row)
+
+  # Validate vector
+  is.valid <- isValidVector(row)
   
-  if (!isValid) {
+  if (!is.valid) {
+    # Get duplicated values
     duplicate <- row[duplicated(row)]
-    indexes <- which(row %in% duplicate)
+    duplicate.indexes <- which(row %in% duplicate)
     
-    errors <- sapply(indexes, FUN = function(col.number) {
+    # Map erros
+    errors <- sapply(duplicate.indexes, FUN = function(col.number) {
       col <- matrix[, col.number]
       ifelse(isValidVector(col), NA, paste(col.number, row.number, sep = ","))
     })
@@ -33,10 +42,11 @@ containsValidValues <- function(row.number, matrix) {
     result$errors <- errors[which(!errors %in% NA)]
   }
   
-  result$isValid <- isValid
+  result$isValid <- is.valid
   
   return(result)
 }
 
-isValidVector <- function(sudoku.vector) 
+isValidVector <- function(sudoku.vector) {
   1:9 %in% (unique(sudoku.vector)) %>% Reduce(f = "&&")
+}
