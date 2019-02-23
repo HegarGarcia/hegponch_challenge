@@ -1,12 +1,13 @@
 import * as _ from "lodash";
-import pieces from "./pieces";
 
-export function stateValidator(state: RubikCube.IMove[]): void {
+const pieces = Object.values(RubikCube.IPiece);
+
+export function stateValidator(state: RubikCube.IPiece[]): void {
   const hasValidLength = state.length === 54;
   const containsValidKeys = _.chain(state)
     .uniq()
     .sort()
-    .isEqual(Object.keys(pieces))
+    .isEqual(pieces)
     .value();
 
   if (!hasValidLength || !containsValidKeys) {
